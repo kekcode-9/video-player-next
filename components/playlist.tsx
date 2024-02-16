@@ -269,10 +269,10 @@ export default function Playlist() {
     },
   });
 
-  const sensors =
-    "ontouchstart" in window || navigator.maxTouchPoints > 0
+  const sensors = typeof window !== 'undefined' &&
+    ("ontouchstart" in window || navigator.maxTouchPoints > 0
       ? useSensors(touchSensor)
-      : useSensors(pointerSensor);
+      : useSensors(pointerSensor));
 
   return (
     <IconContext.Provider
@@ -324,7 +324,7 @@ export default function Playlist() {
                 p-4
             `}
           >
-            {playlistData && (
+            {playlistData && sensors && (
               <DndContext
                 collisionDetection={closestCenter}
                 onDragEnd={dragEndHandler}
