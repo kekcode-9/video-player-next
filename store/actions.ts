@@ -1,0 +1,4 @@
+export default {
+    "SET_CURRENT_VIDEO": "SET_CURRENT_VIDEO",
+    "UPDATE_PLAYLIST": "UPDATE_PLAYLIST"
+}

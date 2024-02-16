@@ -20,7 +20,8 @@ const config: Config = {
       'dark-charcoal': '#2D2D34',
       'jacarta': '#392F5A',
       'black': '#000000',
-      'white': '#FFFFFF'
+      'white': '#FFFFFF',
+      'transparent': 'transparent'
     },
   },
   plugins: [],
