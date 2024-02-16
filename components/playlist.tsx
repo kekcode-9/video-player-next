@@ -10,7 +10,6 @@ import {
   useSensors,
   PointerSensor,
   TouchSensor,
-  MouseSensor,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -189,7 +188,7 @@ export default function Playlist() {
           }
 
           setDocument(updatedPlaylist[i].docId, {
-            ...updatedPlaylist[i]
+            ...updatedPlaylist[i],
           });
 
           if (i === currentIndex) {
@@ -215,9 +214,9 @@ export default function Playlist() {
           }
 
           setDocument(updatedPlaylist[i].docId, {
-            ...updatedPlaylist[i]
+            ...updatedPlaylist[i],
           });
-          
+
           if (i === currentIndex) {
             updatedCurrentIndex = updatedIndex;
           }
@@ -225,23 +224,28 @@ export default function Playlist() {
         // setPlaylistData(arrayMove([...updatedPlaylist], oldIndex, newIndex));
       }
 
-      const sortedPlaylist = [...arrayMove([...updatedPlaylist], oldIndex, newIndex)];
+      const sortedPlaylist = [
+        ...arrayMove([...updatedPlaylist], oldIndex, newIndex),
+      ];
       setPlaylistData(sortedPlaylist);
 
       dispatch({
         type: UPDATE_PLAYLIST,
-        payload: [...sortedPlaylist]
+        payload: [...sortedPlaylist],
       });
 
       if (updatedCurrentIndex >= 0) {
-        sessionStorage.setItem(CURRENT_VID_INDEX, updatedCurrentIndex.toString());
+        sessionStorage.setItem(
+          CURRENT_VID_INDEX,
+          updatedCurrentIndex.toString()
+        );
         dispatch({
           type: SET_CURRENT_VIDEO,
           payload: {
-            ...currentVid as VideoInfoType,
-            id: updatedCurrentIndex
-          }
-        })
+            ...(currentVid as VideoInfoType),
+            id: updatedCurrentIndex,
+          },
+        });
       }
 
       updatedCurrentIndex !== -1 &&
@@ -265,13 +269,10 @@ export default function Playlist() {
     },
   });
 
-  const mouseSensor = useSensor(MouseSensor, {
-    activationConstraint: {
-      distance: 8,
-    },
-  });
-
-  const sensors = useSensors(pointerSensor, mouseSensor, touchSensor);
+  const sensors =
+    "ontouchstart" in window || navigator.maxTouchPoints > 0
+      ? useSensors(touchSensor)
+      : useSensors(pointerSensor);
 
   return (
     <IconContext.Provider
