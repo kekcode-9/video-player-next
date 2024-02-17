@@ -13,7 +13,7 @@ Deployed to Vercel: [https://video-playlist-next.vercel.app/]
     a. To reorder the playlist, grab and drag a video to the desired position in the playlist.
     b. First video cannot be dragged but another video can be dragged up to be placed at first position.
 3. Video skip functionality
-    a. The cards on the playlist have a three dots button. Click on it to see the “skip video” option. Skipped videos won’t be played when their turn comes.
+- The cards on the playlist have a three dots button. Click on it to see the “skip video” option. Skipped videos won’t be played when their turn comes.
     b. The property is stored on the document for each video.
     c. P.s. autoplay after a skipped video is still under work
 4. Player properties retention ( same tab and different tabs )
