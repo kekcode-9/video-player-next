@@ -14,12 +14,12 @@ Deployed to Vercel: [https://video-playlist-next.vercel.app/]
     b. First video cannot be dragged but another video can be dragged up to be placed at first position.
 3. Video skip functionality
 - The cards on the playlist have a three dots button. Click on it to see the “skip video” option. Skipped videos won’t be played when their turn comes.
-    b. The property is stored on the document for each video.
-    c. P.s. autoplay after a skipped video is still under work
+- The property is stored on the document for each video.
+- P.s. autoplay after a skipped video is still under work
 4. Player properties retention ( same tab and different tabs )
-    a. Only volume will be retained across tabs ( since it is usually more of a persistent preference for users )
-    b. Video speed, timestamp ( only when manually sought by user on timeline ), and currently playing video will be retained on the same tab refresh but not across tabs.
+- Only volume will be retained across tabs ( since it is usually more of a persistent preference for users )
+- Video speed, timestamp ( only when manually sought by user on timeline ), and currently playing video will be retained on the same tab refresh but not across tabs.
 5. Video timeline navigation with keys:
-    a. “k” will toggle play/pause
-    b. “j” will move back in timeline by 10 sec
-    c. “l” moves forward in time by 10 sec
+- “k” will toggle play/pause
+- “j” will move back in timeline by 10 sec
+- “l” moves forward in time by 10 sec
