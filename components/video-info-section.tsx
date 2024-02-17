@@ -19,7 +19,7 @@ export default function VideoInfoSection() {
   }, [currentVid]);
 
   useEffect(() => {
-    screen.width < 1024 && gsap.to(sectionRef.current, {
+    gsap.to(sectionRef.current, {
       translateY: moveInfoUp ? '-226px' : '0px'
     })
   }, [moveInfoUp]);

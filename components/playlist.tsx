@@ -241,9 +241,6 @@ export default function Playlist() {
     let playlistVisibilityTimeout: NodeJS.Timeout;
     if (playlist) {
       setPlaylistData(playlist);
-      // playlistVisibilityTimeout = setTimeout(() => {
-      //   setShowPlaylist(false);
-      // }, 3000);
     }
 
     return () => {
@@ -291,14 +288,13 @@ export default function Playlist() {
             translateY: 0
           });
           setShowPlaylist(true);
+          dispatch({
+            type: SET_MOVE_INFO_UP,
+            payload: false
+          })
         }
       }
       setLastScreenSize(screen.width);
-      
-      dispatch({
-        type: SET_MOVE_INFO_UP,
-        payload: !(screen.width < 1024)
-      })
     };
     adjustToResize();
 
