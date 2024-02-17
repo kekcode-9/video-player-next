@@ -1,7 +1,14 @@
 "use client";
 import { CldImage } from "next-cloudinary";
-import React, { useEffect, useState, useContext, useCallback } from "react";
-// dnd-kit
+import React, { 
+  useEffect, 
+  useState, 
+  useContext, 
+  useCallback, 
+  useRef 
+} from "react";
+import gsap from "gsap";
+// dnd-kit imports start here
 import {
   closestCenter,
   DndContext,
@@ -18,7 +25,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-// dnd-kit
+// dnd-kit imports end here
 import { IconContext } from "react-icons";
 import {
   FiChevronsLeft,
@@ -27,6 +34,7 @@ import {
   FiChevronsUp,
   FiMoreVertical,
   FiMoreHorizontal,
+  FiCheck
 } from "react-icons/fi";
 import Typography from "./utility/typography";
 import { VideoInfoType } from "@/types";
@@ -38,7 +46,11 @@ import StorageKeys from "./utility/storage-constants";
 const { TIMESTAMP, VIDEO_SPEED, CURRENT_VID_INDEX, SOURCE_UPDATED } =
   StorageKeys;
 
-const { UPDATE_PLAYLIST, SET_CURRENT_VIDEO } = actions;
+const { 
+  UPDATE_PLAYLIST, 
+  SET_CURRENT_VIDEO, 
+  SET_MOVE_INFO_UP,
+} = actions;
 
 function VideoCard({ video }: { video: VideoInfoType }) {
   const {
@@ -56,9 +68,24 @@ function VideoCard({ video }: { video: VideoInfoType }) {
 
   const { subtitle, thumb, title, id } = video;
   const { state, dispatch } = useContext(VideoContext);
-  const { currentVid } = state;
+  const { currentVid, playlist } = state;
 
   const [currentIndex, setCurrentIndex] = useState<number>();
+  const [showSkipOption, toggleShowSkipOption] = useState<boolean>(false);
+
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if ( e.target instanceof HTMLElement ) {
+        toggleShowSkipOption(false);
+      }
+    }
+
+    document.addEventListener("click", onDocClick);
+
+    return () => {
+      document.removeEventListener("click", onDocClick);
+    }
+  }, [])
 
   useEffect(() => {
     if (currentVid) {
@@ -66,8 +93,10 @@ function VideoCard({ video }: { video: VideoInfoType }) {
     }
   }, [currentVid]);
 
-  const onClickHandler = () => {
-    console.log(`hello`);
+  const onClickHandler = useCallback(() => {
+    if (video.skip) {
+      return;
+    }
     sessionStorage.removeItem(TIMESTAMP);
     sessionStorage.removeItem(VIDEO_SPEED);
 
@@ -79,7 +108,26 @@ function VideoCard({ video }: { video: VideoInfoType }) {
     });
     sessionStorage.setItem(CURRENT_VID_INDEX, video.id.toString());
     sessionStorage.setItem(SOURCE_UPDATED, "true");
-  };
+  }, [video]);
+
+  const updateVideoToSkip = useCallback(() => {
+    if (!video.skip && currentIndex === id) {
+      alert('Cannot skip video that is playing already');
+      return;
+    }
+    const updatedPlaylist: VideoInfoType[] = [...playlist];
+    updatedPlaylist[id] = {
+      ...updatedPlaylist[id],
+      skip: !video.skip
+    };
+    dispatch({
+      type: UPDATE_PLAYLIST,
+      payload: [...updatedPlaylist]
+    });
+    setDocument(updatedPlaylist[id].docId, {
+      ...updatedPlaylist[id],
+    });
+  }, [video, playlist, currentIndex])
 
   return (
     <div
@@ -90,29 +138,31 @@ function VideoCard({ video }: { video: VideoInfoType }) {
       className={`
         video-card 
         relative 
-        flex max-sm:flex-col gap-0
+        flex max-lg:flex-col gap-0
         items-start 
         w-44 h-52
-        sm:w-96 sm:h-28
-        sm:p-2
+        lg:w-96 lg:h-28
+        p-1 sm:p-2
         rounded-md 
         text-white
         cursor-pointer
         ${
-          currentIndex === id
+          currentIndex === id && !video.skip
             ? "bg-shocking-pink bg-opacity-65"
-            : "bg-transparent"
+            : (
+              video.skip ? "bg-gray opacity-60" : "bg-transparent"
+            )
         }
       `}
-      onClick={onClickHandler}
     >
       <div
         className="thumbnail-wrapper
           relative 
-          w-full sm:w-[60%] 
-          h-1/2 sm:h-full
+          w-full lg:w-[60%] 
+          h-1/2 lg:h-full
           border rounded-md 
           overflow-hidden"
+          onClick={onClickHandler}
       >
         <CldImage
           src={thumb}
@@ -121,20 +171,56 @@ function VideoCard({ video }: { video: VideoInfoType }) {
           alt={`${title}-thumb`}
         />
       </div>
-      <div className="info-text flex-col gap-1 w-full max-sm:p-2 sm:pl-2">
+      <div 
+        className="info-text 
+        flex-col gap-1 
+        w-full lg:h-full
+        max-lg:p-2 lg:pl-2"
+        onClick={onClickHandler}
+      >
         <Typography
-          additionalClasses="line-clamp-1 sm:line-clamp-2"
+          additionalClasses="line-clamp-1 lg:line-clamp-2"
           size="text-base"
         >
           <b>{title}</b>
         </Typography>
-        <Typography size="text-sm">
-          {subtitle}-{id}
+        <Typography
+          additionalClasses="line-clamp-1 lg:line-clamp-2"
+          size="text-sm"
+        >
+          {subtitle}
         </Typography>
       </div>
-      <div>
-        <FiMoreVertical className="max-sm:hidden" />
-        <FiMoreHorizontal className="sm:hidden" />
+      <div 
+        className="relative max-lg:px-2" 
+        onClick={(e) => {
+          e.preventDefault();
+          toggleShowSkipOption(true);
+        }}
+      >
+        <FiMoreVertical className="max-lg:hidden" />
+        <FiMoreHorizontal className="lg:hidden" />
+        {
+          showSkipOption &&
+          <div 
+            className="skip-option-wrapper
+            absolute 
+            max-lg:top-0 max-lg:left-[1.5rem] lg:right-0
+            flex items-center gap-1 
+            w-max h-fit 
+            py-2 px-4
+            bg-black"
+            onClick={updateVideoToSkip}
+          >
+            {
+              video.skip &&
+              <FiCheck />
+            }
+            <Typography additionalClasses="text-nowrap">
+              Skip video
+            </Typography>
+          </div>
+        }
       </div>
     </div>
   );
@@ -143,15 +229,85 @@ function VideoCard({ video }: { video: VideoInfoType }) {
 export default function Playlist() {
   const [showPlaylist, setShowPlaylist] = useState(true);
   const [playlistData, setPlaylistData] = useState<VideoInfoType[]>();
+  const [iconSize, setIconSize] = useState<string>("1.5rem");
+  const [lastScreenSize, setLastScreenSize] = useState<number>();
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const { state, dispatch } = useContext(VideoContext);
-  const { playlist, currentVid } = state;
+  const { playlist, currentVid, hidePlaylist } = state;
 
   useEffect(() => {
+    let playlistVisibilityTimeout: NodeJS.Timeout;
     if (playlist) {
       setPlaylistData(playlist);
+      // playlistVisibilityTimeout = setTimeout(() => {
+      //   setShowPlaylist(false);
+      // }, 3000);
+    }
+
+    return () => {
+      if (playlistVisibilityTimeout) {
+        clearTimeout(playlistVisibilityTimeout);
+      }
     }
   }, [playlist]);
+
+  useEffect(() => {
+    if (screen.width > 1024) {
+      gsap.to(containerRef.current, {
+        translateX: showPlaylist ? '0px' : '410px'
+      })
+    } else {
+      gsap.to(containerRef.current, {
+        translateY: showPlaylist ? '0px' : '-226px',
+        delay: showPlaylist ? 0.3 : 0
+      });
+      dispatch({
+        type: SET_MOVE_INFO_UP,
+        payload: !showPlaylist
+      })
+    }
+  }, [showPlaylist, containerRef])
+
+  useEffect(() => {
+    const adjustToResize = () => {
+      // update icon size
+      if (screen.width < 768) {
+        setIconSize("1rem");
+      } else {
+        setIconSize("1.5rem");
+      }
+
+      // set playlist to neutral position
+      if (containerRef.current && lastScreenSize) {
+        if (lastScreenSize >= 1024 && screen.width < 1024) {
+          gsap.set(containerRef.current, {
+            translateX: 0,
+          });
+          setShowPlaylist(true);
+        } else if (lastScreenSize < 1024 && screen.width >= 1024) {
+          gsap.set(containerRef.current, {
+            translateY: 0
+          });
+          setShowPlaylist(true);
+        }
+      }
+      setLastScreenSize(screen.width);
+      
+      dispatch({
+        type: SET_MOVE_INFO_UP,
+        payload: !(screen.width < 1024)
+      })
+    };
+    adjustToResize();
+
+    window.addEventListener("resize", adjustToResize);
+
+    return () => {
+      window.removeEventListener("resize", adjustToResize);
+    };
+  }, [lastScreenSize]);
 
   const dragEndHandler = useCallback(
     (e: DragEndEvent) => {
@@ -269,59 +425,78 @@ export default function Playlist() {
     },
   });
 
-  const sensors = typeof window !== 'undefined' &&
+  const sensors =
+    typeof window !== "undefined" &&
     ("ontouchstart" in window || navigator.maxTouchPoints > 0
       ? useSensors(touchSensor)
       : useSensors(pointerSensor));
+
+  if (hidePlaylist) {
+    return;
+  }
 
   return (
     <IconContext.Provider
       value={{
         color: "white",
-        size: "24px",
+        size: iconSize,
       }}
     >
       <div
-        className="playlist-container
-          sm:absolute z-30
-          sm:right-0 sm:top-0
-          flex max-sm:flex-col
+        ref={containerRef}
+        className={`
+          playlist-container
+          lg:absolute lg:z-30
+          lg:right-0 lg:top-0
+          flex max-lg:flex-col-reverse
           items-start justify-start
           w-screen h-fit
-          sm:w-fit sm:h-screen
-          bg-black"
+          lg:w-fit lg:h-screen
+          bg-jacarta
+        `}
       >
         <div
           onClick={() => {
-            if (screen.width > 640) {
-              setShowPlaylist(!showPlaylist);
-            }
+            setShowPlaylist(!showPlaylist);
           }}
           className={`
               playlist-visibility-toggler
               flex items-center justify-center
-              w-screen h-fit sm:w-fit sm:h-screen 
-              pt-4 sm:pl-4 ${showPlaylist ? "sm:pr-0" : "sm:pr-4"}
+              w-screen h-fit lg:w-fit lg:h-screen 
+              py-4 lg:pl-4 ${showPlaylist ? "lg:pr-0" : "lg:pr-4"}
           `}
         >
-          {showPlaylist ? (
-            <FiChevronsRight className="max-sm:hidden cursor-pointer" />
-          ) : (
-            <FiChevronsLeft className="max-sm:hidden cursor-pointer" />
-          )}
+          {showPlaylist ?
+            <>
+              <FiChevronsRight className="max-lg:hidden cursor-pointer" />
+              <FiChevronsUp className="lg:hidden cursor-pointer" />
+            </> :
+            <>
+              <FiChevronsLeft className="max-lg:hidden cursor-pointer" />
+              <div
+                className="lg:hidden cursor-pointer
+                flex gap-1 items-center 
+                w-fit h-fit
+                text-white
+                "
+              >
+                <Typography >Playlist</Typography>
+                <FiChevronsDown />
+              </div>
+            </>
+          }
         </div>
         <div
           className="playlist-wrapper
             w-screen h-fit
-            sm:w-fit sm:h-screen
+            lg:w-fit lg:h-screen
             overflow-scroll"
         >
           <div
             className={`playlist
-                ${showPlaylist ? "flex" : "hidden"}
-                sm:flex-col gap-2
-                w-fit sm:w-full
-                p-4
+                flex lg:flex-col gap-2
+                w-fit lg:w-full
+                max-lg:px-4 max-lg:pt-4 lg:p-4
             `}
           >
             {playlistData && sensors && (

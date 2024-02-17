@@ -16,12 +16,12 @@ const config: Config = {
     },
     colors: {
       'shocking-pink': '#FF1BB1',
-      'liberty': '#5F5AA2',
-      'dark-charcoal': '#2D2D34',
+      'dark-charcoal': '#0D1317',
       'jacarta': '#392F5A',
       'black': '#000000',
       'white': '#FFFFFF',
-      'transparent': 'transparent'
+      'transparent': 'transparent',
+      'gray': '#626262'
     },
   },
   plugins: [],

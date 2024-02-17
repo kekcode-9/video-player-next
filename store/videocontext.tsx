@@ -3,21 +3,30 @@ import React, { createContext, useReducer, Dispatch } from "react";
 import { VideoInfoType } from "@/types";
 import actions from "./actions";
 
-const { SET_CURRENT_VIDEO, UPDATE_PLAYLIST } = actions;
+const { 
+  SET_CURRENT_VIDEO, 
+  UPDATE_PLAYLIST, 
+  TOGGLE_PLAYLIST_EXISTENCE, 
+  SET_MOVE_INFO_UP
+} = actions;
 
 type ActionType = {
   type: (typeof actions)[keyof typeof actions];
-  payload: VideoInfoType | VideoInfoType[];
+  payload: VideoInfoType | VideoInfoType[] | boolean;
 };
 
 type InitialStateType = {
   currentVid: VideoInfoType | undefined;
   playlist: VideoInfoType[] | [];
+  hidePlaylist: boolean;
+  moveInfoUp: boolean;
 };
 
 const initialState: InitialStateType = {
   currentVid: undefined,
   playlist: [],
+  hidePlaylist: false,
+  moveInfoUp: false
 };
 
 // reducer
@@ -37,6 +46,20 @@ function reducer(state: InitialStateType, action: ActionType) {
         ...state,
         playlist: [...(payload as VideoInfoType[])],
       };
+      return finalState;
+    }
+    case TOGGLE_PLAYLIST_EXISTENCE: {
+      const finalState: InitialStateType = {
+        ...state,
+        hidePlaylist: payload as boolean
+      }
+      return finalState;
+    }
+    case SET_MOVE_INFO_UP: {
+      const finalState: InitialStateType = {
+        ...state,
+        moveInfoUp: payload as boolean
+      }
       return finalState;
     }
     default:

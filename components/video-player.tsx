@@ -6,6 +6,7 @@ import React, {
   useState,
   useContext,
 } from "react";
+import gsap from "gsap";
 import { VideoContext } from "@/store/videocontext";
 import { IconContext } from "react-icons";
 import LoaderSvg from "./loader-svg";
@@ -26,8 +27,9 @@ import {
 import StorageKeys from "./utility/storage-constants";
 import actions from "@/store/actions";
 import { VideoInfoType } from "@/types";
+import Typography from "./utility/typography";
 
-const { SET_CURRENT_VIDEO } = actions;
+const { SET_CURRENT_VIDEO, TOGGLE_PLAYLIST_EXISTENCE } = actions;
 
 const { CURRENT_VID_INDEX, VIDEO_SPEED, VOLUME, TIMESTAMP, SOURCE_UPDATED } =
   StorageKeys;
@@ -49,6 +51,8 @@ export default function VideoPlayer() {
   const { state, dispatch } = useContext(VideoContext);
   const { currentVid, playlist } = state;
 
+  const controlsRef = useRef<HTMLDivElement>(null);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const [duration, setDuration] = useState<number>(0);
   const [timerContent, setTimerContent] = useState<string>("00:00");
@@ -66,17 +70,18 @@ export default function VideoPlayer() {
   const [showControls, setShowControls] = useState<boolean>(true);
   const [videoObject, setVideoObject] = useState<VideoInfoType>();
   const [readyToShow, toggleReadyToShow] = useState<boolean>(false);
-  const [showNextVidLoader, setShowNextVidLoader] = useState<boolean>(false);
-  const [nextVidCountdown, setNextVidCountdown] = useState<number>(5);
+  const [iconSize, setIconSize] = useState<string>("1.5rem");
+  const [isTouchScreen, toggleIsTouchScreen] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (!currentVid) {
-      toggleBuffering(true);
-    } else {
-      toggleBuffering(false);
-      setVideoObject(currentVid);
-    }
-  }, [currentVid]);
+  let seekDebounceTimer: NodeJS.Timeout;
+
+  const toggleFullScreen = (isFullscreen: boolean) => {
+    setFullScreenMode(isFullscreen);
+    dispatch({
+      type: TOGGLE_PLAYLIST_EXISTENCE,
+      payload: isFullscreen,
+    });
+  };
 
   const prettifyDuration = (
     vidDuration: number
@@ -89,17 +94,96 @@ export default function VideoPlayer() {
     return { hr, min, sec };
   };
 
+  const keyDownHandler = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      toggleFullScreen(false);
+    }
+    const lowercaseKey = e.key.toLocaleLowerCase();
+    if (videoRef.current) {
+      if (lowercaseKey === "k") {
+        playing ? videoRef.current.pause() : videoRef.current.play();
+        togglePlaying(!playing);
+      }
+      if (lowercaseKey === "j" || lowercaseKey === "l") {
+        const currentTime = videoRef.current.currentTime;
+        if (currentTime) {
+          const timeOffset = lowercaseKey === "j" ? -10 : 10;
+          const {hr, min, sec} = prettifyDuration(currentTime + timeOffset);
+          const timerDuration = timerContent.split(" / ")[1];
+          const updatedContent = hr ? `${hr}:${min}:${sec} / ${timerDuration}` : `${min}:${sec} / ${timerDuration}`;
+          setTimerContent(updatedContent);
+          videoRef.current.currentTime = currentTime + timeOffset;
+        }
+      }
+    }
+  }, [playing, timerContent]);
+
+  useEffect(() => {
+    typeof window !== undefined &&
+      toggleIsTouchScreen(
+        "ontouchstart" in window || navigator.maxTouchPoints > 0
+      );
+    const updateIconSize = () => {
+      if (screen.width < 640) {
+        setIconSize("1rem");
+      } else {
+        setIconSize("1.5rem");
+      }
+    };
+    updateIconSize();
+
+    const onDocClick = (e: MouseEvent) => {
+      if (
+        e.target instanceof HTMLElement &&
+        !e.target?.classList.contains("playback-speed-options-wrapper")
+      ) {
+        setShowSpeedOptions(false);
+      }
+    };
+
+    document.addEventListener("click", onDocClick);
+    window.addEventListener("resize", updateIconSize);
+    document.addEventListener("keydown", keyDownHandler);
+
+    return () => {
+      document.removeEventListener("click", onDocClick);
+      window.removeEventListener("resize", updateIconSize);
+      document.removeEventListener("keydown", keyDownHandler);
+    };
+  }, [playing, timerContent]);
+
+  useEffect(() => {
+    if (!currentVid) {
+      toggleBuffering(true);
+    } else {
+      toggleBuffering(false);
+      setVideoObject(currentVid);
+    }
+  }, [currentVid]);
+
+  useEffect(() => {
+    gsap.to(controlsRef.current, {
+      opacity: +showControls,
+      duration: 0.15
+    })
+  }, [controlsRef, showControls])
+
   const updateSeekedTimestamp = (
     timestamp: string,
     timerCurrentState: string
   ) => {
+    if (seekDebounceTimer) {
+      clearTimeout(seekDebounceTimer);
+    }
     setTimerRangeValue(timestamp);
     const { hr, min, sec } = prettifyDuration(Number(timestamp));
     const vidDuration = timerCurrentState.split(" / ")[1];
-    if (videoRef.current) {
-      videoRef.current.currentTime = Number(timestamp);
-      toggleBuffering(true);
-    }
+    seekDebounceTimer = setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.currentTime = Number(timestamp);
+        toggleBuffering(true);
+      }
+    }, 300)
     if (hr) {
       setTimerContent(`${hr}:${min}:${sec} / ${vidDuration}`);
     } else {
@@ -152,12 +236,10 @@ export default function VideoPlayer() {
         videoRef.current
           ?.play()
           .then(() => {
-            console.log("can play");
             videoRef.current?.play();
             togglePlaying(true);
           })
           .catch((err) => {
-            console.log("can play not");
             togglePlaying(false);
           });
       }
@@ -183,31 +265,19 @@ export default function VideoPlayer() {
     return () => {
       retryTimer && clearInterval(retryTimer);
     };
-  }, [videoRef.current?.readyState]);
+  }, [videoRef.current?.readyState, videoObject]);
 
   const onSeekHandler = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const timestamp = e.target.value;
       updateSeekedTimestamp(timestamp, timerContent);
       sessionStorage.setItem(TIMESTAMP, timestamp);
-      // setTimerRangeValue(timestamp);
-      // const { hr, min, sec } = prettifyDuration(Number(timestamp));
-      // const vidDuration = timerContent.split(" / ")[1];
-      // if (videoRef.current) {
-      //   videoRef.current.currentTime = Number(timestamp);
-      //   toggleBuffering(true);
-      // }
-      // if (hr) {
-      //   setTimerContent(`${hr}:${min}:${sec} / ${vidDuration}`);
-      // } else {
-      //   setTimerContent(`${min}:${sec} / ${vidDuration}`);
-      // }
+      
     },
     [timerContent]
   );
 
   const onTimeUpdateHandler = useCallback(() => {
-    console.log("onTimeUpdateHandler");
     if (videoRef.current) {
       const timestamp = videoRef.current.currentTime;
       const { hr, min, sec } = prettifyDuration(timestamp);
@@ -243,11 +313,19 @@ export default function VideoPlayer() {
   );
 
   const loadNext = useCallback(() => {
-    const currentIndex = videoObject?.id;
-    if (currentIndex !== playlist.length - 1) {
-      let secLeft = 5;
-      setShowNextVidLoader(true);
-      const nextVid = playlist[(currentIndex as number) + 1];
+    let currentIndex = videoObject?.id;
+    const playlistLength = playlist.length;
+    if (currentIndex && currentIndex !== playlistLength - 1) {
+      let nextVid = playlist[(currentIndex as number) + 1];
+      while (nextVid.skip) {
+        if ((currentIndex + 1) < playlistLength - 1) {
+          currentIndex = currentIndex + 1;
+          nextVid = playlist[currentIndex + 1];
+        } else {
+          return;
+        }
+      }
+
       dispatch({
         type: SET_CURRENT_VIDEO,
         payload: {
@@ -258,29 +336,6 @@ export default function VideoPlayer() {
       sessionStorage.removeItem(VIDEO_SPEED);
       sessionStorage.setItem(CURRENT_VID_INDEX, nextVid.id.toString());
       sessionStorage.setItem(SOURCE_UPDATED, "true");
-      //clearInterval(intervalTimer);
-      setNextVidCountdown(5);
-      setShowNextVidLoader(false);
-      // const intervalTimer = setInterval(() => {
-      //   setNextVidCountdown(secLeft);
-      //   if (!secLeft) {
-      //     const nextVid = playlist[currentIndex as number + 1];
-      //     dispatch({
-      //       type: SET_CURRENT_VIDEO,
-      //       payload: {
-      //         ...nextVid
-      //       }
-      //     });
-      //     sessionStorage.removeItem(TIMESTAMP);
-      //     sessionStorage.removeItem(VIDEO_SPEED);
-      //     sessionStorage.setItem(CURRENT_VID_INDEX, nextVid.id.toString());
-      //     sessionStorage.setItem(SOURCE_UPDATED, "true");
-      //     clearInterval(intervalTimer);
-      //     setNextVidCountdown(5);
-      //     setShowNextVidLoader(false);
-      //   }
-      //   secLeft = secLeft - 1;
-      // }, 1000)
     }
   }, [videoObject, playlist]);
 
@@ -299,15 +354,20 @@ export default function VideoPlayer() {
     <IconContext.Provider
       value={{
         color: "white",
-        size: "24px",
+        size: iconSize,
       }}
     >
       <div
         className={`
           player-container
+          max-lg:relative max-lg:z-10
           ${readyToShow ? "opacity-100" : "opacity-0"}
           flex items-center justify-center
-          ${fullScreenMode ? `w-screen h-screen` : "w-screen max-h-[50vh]"} 
+          ${
+            fullScreenMode
+              ? `w-screen h-screen z-40`
+              : "w-screen max-h-[50vh] z-0"
+          } 
           bg-black
           text-white
         `}
@@ -336,8 +396,31 @@ export default function VideoPlayer() {
               bg-black
             `}
             onMouseEnter={() => readyToShow && setShowControls(true)}
-            onMouseLeave={() => setShowControls(false)}
+            onMouseLeave={() => {
+              setShowControls(false);
+              setShowSpeedOptions(false);
+            }}
           >
+            {
+              buffering &&
+              <div
+                className={`
+                  buffer-overlay 
+                  absolute top-0 left-0 z-50
+                  flex items-center justify-center
+                  w-full backdrop:blur-md
+                  ${
+                    fullScreenMode
+                      ? `min-w-[100vh] 
+                      max-sm:top-0 max-sm:bottom-0 max-sm:left-0 max-sm:right-0
+                      sm:min-w-full sm:min-h-full max-sm:rotate-90`
+                      : "h-full"
+                  } bg-black bg-opacity-80
+                `}
+              >
+                Loading...
+              </div>
+            }
             <video
               src={videoObject?.sources[0]}
               poster={videoObject?.thumb}
@@ -349,33 +432,42 @@ export default function VideoPlayer() {
               }`}
               ref={videoRef}
               onClick={() => {
-                if (screen.width >= 768) {
-                  playing
-                    ? videoRef.current?.pause()
-                    : videoRef.current?.play();
-                  togglePlaying(!playing);
-                } else {
+                playing ? videoRef.current?.pause() : videoRef.current?.play();
+                togglePlaying(!playing);
+                if (isTouchScreen) {
                   setShowControls(!showControls);
                 }
               }}
               onTimeUpdate={onTimeUpdateHandler}
               onEnded={loadNext}
             />
-            {showControls && (
-              <div
-                className="controls-wrapper
+            {
+              showControls && <div
+                ref={controlsRef}
+                className={`
+                  controls-wrapper
                   absolute bottom-0
-                  flex flex-col
-                  items-center
+                  flex sm:flex-col
+                  items-center max-sm:justify-around
                   w-full h-fit
-                  p-4
-                  bg-liberty"
+                  sm:p-4
+                  sm:bg-black
+                  ${
+                    fullScreenMode
+                      ? "max-sm:rotate-90 max-sm:top-0 max-sm:left-0 max-sm:right-0 max-sm:m-auto"
+                      : ""
+                  }
+                `}
               >
                 <div
                   className="timeline-slider-wrapper
                     w-full h-fit"
                 >
-                  <p>{timerContent}</p>
+                  <div className="w-fit h-fit max-sm:p-2">
+                    <Typography size="max-sm:text-sm">
+                      {timerContent}
+                    </Typography>
+                  </div>
                   <input
                     type="range"
                     min="0"
@@ -387,8 +479,9 @@ export default function VideoPlayer() {
                 </div>
                 <div
                   className="controls
+                    max-sm:absolute max-sm:top-2 max-sm:right-2
                     flex items-center justify-between
-                    w-full h-fit"
+                    w-fit sm:w-full h-fit"
                 >
                   <div
                     className="volume-controller
@@ -429,13 +522,14 @@ export default function VideoPlayer() {
                   </div>
                   <div
                     className="state-controllers
-                      flex gap-4
+                      max-sm:hidden
+                      flex gap-2 md:gap-4
                       items-center
                       w-fit h-fit p-3
                       rounded-full
                       bg-black border-2 border-shocking-pink"
                   >
-                    <FiSkipBack className="opacity-70 hover:opacity-100 cursor-pointer" />
+                    {/*<FiSkipBack className="opacity-70 hover:opacity-100 cursor-pointer" />*/}
                     {playing ? (
                       <FiPause
                         onClick={() => {
@@ -457,23 +551,26 @@ export default function VideoPlayer() {
                             cursor-pointer"
                       />
                     )}
-                    <FiSkipForward className="opacity-70 hover:opacity-100 cursor-pointer" />
+                    {/*<FiSkipForward className="opacity-70 hover:opacity-100 cursor-pointer" />*/}
                   </div>
-                  <div className="controllers-right relative flex gap-4">
+                  <div className="controllers-right relative flex items-center gap-4">
                     {showSpeedOptions && (
                       <div
-                        className="playback-speed-options-wrapper
-                          absolute bottom-0
-                          flex flex-col gap-2
+                        className={`playback-speed-options-wrapper
+                          absolute z-40 max-lg:top-0 max-lg:right-8 lg:bottom-0
+                          flex ${fullScreenMode ? 'sm:flex-col' : 'flex-col'} gap-2
                           w-fit h-fit 
                           py-2 pl-2 pr-10
                           rounded-md text-white
-                          bg-black"
+                          bg-black`}
                       >
                         {new Array(8).fill("").map((a, i) => {
                           const speed = 0.25 * (i + 1);
                           return (
-                            <div key={i} className="flex gap-1">
+                            <div
+                              key={i}
+                              className="flex gap-1 hover:text-shocking-pink"
+                            >
                               <FiCheck
                                 className={`
                                   ${
@@ -483,8 +580,8 @@ export default function VideoPlayer() {
                                   }
                                 `}
                               />
-                              <span
-                                className="cursor-pointer"
+                              <div
+                                className="w-fit h-fit cursor-pointer"
                                 onClick={() => {
                                   setPlaybackSpeed(speed);
                                   setShowSpeedOptions(false);
@@ -497,28 +594,41 @@ export default function VideoPlayer() {
                                   );
                                 }}
                               >
-                                {speed}
-                              </span>
+                                <Typography size="max-sm:text-sm">
+                                  {speed}
+                                </Typography>
+                              </div>
                             </div>
                           );
                         })}
                       </div>
                     )}
-                    <div className="speed-controller flex">
-                      <span>{playbackSpeed}x </span>
+                    <>
                       {showSpeedOptions ? (
-                        <FiChevronDown
-                          className="cursor-pointer"
+                        <div
+                          className="speed-controller flex items-center"
                           onClick={() => setShowSpeedOptions(false)}
-                        />
+                        >
+                          <Typography size="max-sm:text-sm" additionalClasses="cursor-pointer">
+                            {playbackSpeed}x
+                          </Typography>
+                          <FiChevronDown className="max-lg:hidden cursor-pointer" />
+                          <FiChevronUp className="lg:hidden cursor-pointer" />
+                        </div>
                       ) : (
-                        <FiChevronUp
-                          className="cursor-pointer"
+                        <div
+                          className="speed-controller flex items-center"
                           onClick={() => setShowSpeedOptions(true)}
-                        />
+                        >
+                          <Typography size="max-sm:text-sm">
+                            {playbackSpeed}x
+                          </Typography>
+                          <FiChevronDown className="lg:hidden cursor-pointer" />
+                          <FiChevronUp className="max-lg:hidden cursor-pointer" />
+                        </div>
                       )}
-                    </div>
-                    <span onClick={() => setFullScreenMode(!fullScreenMode)}>
+                    </>
+                    <span onClick={() => toggleFullScreen(!fullScreenMode)}>
                       {fullScreenMode ? (
                         <FiMinimize className="size-controller cursor-pointer" />
                       ) : (
@@ -528,7 +638,7 @@ export default function VideoPlayer() {
                   </div>
                 </div>
               </div>
-            )}
+            }
           </div>
         }
       </div>

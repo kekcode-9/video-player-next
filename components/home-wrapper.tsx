@@ -54,8 +54,8 @@ export default function HomeWrapper() {
   return (
     <>
         <VideoPlayer />
-        <VideoInfoSection />
         <Playlist />
+        <VideoInfoSection />
     </>
   )
 }

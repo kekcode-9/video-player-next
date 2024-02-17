@@ -18,7 +18,7 @@ export default function Typography({
   return (
     <>
       {isHeader ? (
-        <h1 className="">
+        <h1 className="text-2xl sm:text-[2rem]">
           {children}
         </h1>
       ) : (
@@ -26,8 +26,8 @@ export default function Typography({
           className={`
             ${ size ||
               (isSubHeader
-                ? ""
-                : "")
+                ? "text-xl sm:text-2xl"
+                : "text-base")
             }
             ${additionalClasses}
           `}

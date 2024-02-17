@@ -7,31 +7,42 @@ export default function LoaderSvg() {
 
   useEffect(() => {
     if (circleRef.current) {
-      gsap.fromTo(circleRef.current, {
-        translateY: "0px"
-      }, {
-        translateY: "-112px",
-        repeat: -1,
-        yoyo: true
-      })
+      gsap.fromTo(
+        circleRef.current,
+        {
+          translateY: "0px",
+        },
+        {
+          translateY: "-86px",
+          repeat: -1,
+          yoyo: true,
+        }
+      );
     }
   }, [circleRef.current]);
 
   return (
     <svg
-      width="216"
-      height="273"
-      viewBox="0 0 216 273"
+      width="119"
+      height="153"
+      viewBox="0 0 119 153"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
       <path
-        d="M2 271.5H214"
-        stroke="white"
+        d="M2 151H117"
+        stroke="#FF1BB1"
         strokeWidth="3"
         strokeLinecap="round"
       />
-      <circle ref={circleRef} className="-translate-y-[112px]" cx="108" cy="213" r="59" fill="white" />
+      <circle
+        ref={circleRef}
+        className="-translate-y-[86px]"
+        cx="60"
+        cy="119"
+        r="32"
+        fill="#FF1BB1"
+      />
     </svg>
   );
 }

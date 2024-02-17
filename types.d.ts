@@ -6,4 +6,5 @@ export type VideoInfoType = {
     thumb: string;
     title: string;
     id: number;
+    skip: boolean;
   };
