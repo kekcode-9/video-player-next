@@ -23,3 +23,6 @@ Deployed to Vercel: [https://video-playlist-next.vercel.app/]
 - “k” will toggle play/pause
 - “j” will move back in timeline by 10 sec
 - “l” moves forward in time by 10 sec
+
+p.s.
+**On full screen mode for smaller devices. The controls are smack dab in the middle of the screen. I have implemented the full screen for mobile with rotation for now due to orientation not having permission. This will be fixed in the next iteration (hopefully with orientation)**.
