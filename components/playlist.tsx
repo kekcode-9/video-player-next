@@ -442,7 +442,7 @@ export default function Playlist() {
         ref={containerRef}
         className={`
           playlist-container
-          lg:absolute lg:z-30
+          lg:absolute lg:z-[60]
           lg:right-0 lg:top-0
           flex max-lg:flex-col-reverse
           items-start justify-start
@@ -486,7 +486,7 @@ export default function Playlist() {
           className="playlist-wrapper
             w-screen h-fit
             lg:w-fit lg:h-screen
-            overflow-scroll"
+            overflow-scroll lg:overflow-x-hidden"
         >
           <div
             className={`playlist
