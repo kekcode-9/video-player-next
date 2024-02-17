@@ -4,11 +4,11 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 Deployed to Vercel: [https://video-playlist-next.vercel.app/]
 
 ## To note
-###Important
+### Important
 .env.local has been added temporarily so anyone taking a pull will have the env variables to run the app locally. 
 **This file will be removed on wednesday, 21st February.**
 
-###About the app:
+### About the app:
 1. Playlist reordering ( DnD - Kit used )
     a. To reorder the playlist, grab and drag a video to the desired position in the playlist.
     b. First video cannot be dragged but another video can be dragged up to be placed at first position.
