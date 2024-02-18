@@ -437,7 +437,7 @@ export default function Playlist() {
 
   const touchSensor = useSensor(TouchSensor, {
     activationConstraint: {
-      distance: 8,
+      distance: 1,
     },
   });
 
