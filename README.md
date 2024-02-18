@@ -12,6 +12,9 @@ Deployed to Vercel: [https://video-playlist-next.vercel.app/]
 .env.local has been added temporarily so anyone taking a pull will have the env variables to run the app locally. 
 **This file will be removed on wednesday, 21st February.**
 
+## App structure
+There are three main components - video-player ( the player itself ), video-info-section ( the title, subtitle and description, playlist )
+
 ### About the app:
 1. Playlist reordering ( DnD - Kit used )
 - To reorder the playlist, grab and drag a video to the desired position in the playlist.
