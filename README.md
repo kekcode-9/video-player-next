@@ -17,9 +17,8 @@ There are three main components - video-player ( the player itself ), video-info
 
 ### About the app:
 1. Playlist reordering ( DnD - Kit used )
-- To reorder the playlist, grab and drag a video to the desired position in the playlist.
+- To reorder the playlist, grab and drag a video to the desired position in the playlist. There is a drag handler ( two vertical lines ) on every video card in playlist.
 - First video cannot be dragged but another video can be dragged up to be placed at first position.
-- Sadly, on phone the scroll is somewhat glitchy ( going to see if I can buid a drag handle for that )
 3. Video skip functionality
 - The cards on the playlist have a three dots button. Click on it to see the “skip video” option. Skipped videos won’t be played when their turn comes.
 - The property is stored on the document for each video.
