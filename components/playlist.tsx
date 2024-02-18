@@ -34,8 +34,9 @@ import {
   FiChevronsUp,
   FiMoreVertical,
   FiMoreHorizontal,
-  FiCheck
+  FiCheck,
 } from "react-icons/fi";
+import { VscGrabber } from "react-icons/vsc";
 import Typography from "./utility/typography";
 import { VideoInfoType } from "@/types";
 import { setDocument } from "@/firebase/firestore-access";
@@ -130,99 +131,118 @@ function VideoCard({ video }: { video: VideoInfoType }) {
   }, [video, playlist, currentIndex])
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className={`
-        video-card 
-        relative 
-        flex max-lg:flex-col gap-0
-        items-start 
-        w-44 h-52
-        lg:w-96 lg:h-28
-        p-1 sm:p-2
-        rounded-md 
-        text-white
-        cursor-pointer
-        ${
-          currentIndex === id && !video.skip
-            ? "bg-shocking-pink bg-opacity-65"
-            : (
-              video.skip ? "bg-gray opacity-60" : "bg-transparent"
-            )
-        }
-      `}
+    <IconContext.Provider
+      value={{
+        color: 'white',
+        size: '20px'
+      }}
     >
       <div
-        className="thumbnail-wrapper
+        ref={setNodeRef}
+        style={style}
+        className={`
+          video-card 
           relative 
-          w-full lg:w-[60%] 
-          h-1/2 lg:h-full
-          border rounded-md 
-          overflow-hidden"
-          onClick={onClickHandler}
+          flex gap-0
+          items-center 
+          w-[15rem] h-52
+          lg:w-96 lg:h-28
+          max-lg:pr-1 max-lg:py-1 lg:p-2
+          rounded-md 
+          text-white
+          cursor-pointer
+          ${
+            currentIndex === id && !video.skip
+              ? "bg-shocking-pink bg-opacity-65"
+              : (
+                video.skip ? "bg-gray opacity-60" : "bg-transparent"
+              )
+          }
+        `}
       >
-        <CldImage
-          src={thumb}
-          fill
-          className="object-cover"
-          alt={`${title}-thumb`}
-        />
-      </div>
-      <div 
-        className="info-text 
-        flex-col gap-1 
-        w-full lg:h-full
-        max-lg:p-2 lg:pl-2"
-        onClick={onClickHandler}
-      >
-        <Typography
-          additionalClasses="line-clamp-1 lg:line-clamp-2"
-          size="text-base"
+        <div
+          {...attributes}
+          {...listeners}
+          className="flex items-center justify-center 
+          h-full 
+          pl-1 pr-2 cursor-move"
         >
-          <b>{title}</b>
-        </Typography>
-        <Typography
-          additionalClasses="line-clamp-1 lg:line-clamp-2"
-          size="text-sm"
+          <VscGrabber />
+        </div>
+        <div
+          className="card-content-wrapper
+          w-full h-full
+          flex max-lg:flex-col gap-1
+          "
         >
-          {subtitle}
-        </Typography>
-      </div>
-      <div 
-        className="relative max-lg:px-2" 
-        onClick={(e) => {
-          e.preventDefault();
-          toggleShowSkipOption(true);
-        }}
-      >
-        <FiMoreVertical className="max-lg:hidden" />
-        <FiMoreHorizontal className="lg:hidden" />
-        {
-          showSkipOption &&
-          <div 
-            className="skip-option-wrapper
-            absolute 
-            max-lg:top-0 max-lg:left-[1.5rem] lg:right-0
-            flex items-center gap-1 
-            w-max h-fit 
-            py-2 px-4
-            bg-black"
-            onClick={updateVideoToSkip}
+          <div
+            className="thumbnail-wrapper
+            relative
+            w-full h-full
+            border rounded-md
+            overflow-hidden"
           >
-            {
-              video.skip &&
-              <FiCheck />
-            }
-            <Typography additionalClasses="text-nowrap">
-              Skip video
+            <CldImage
+              src={thumb}
+              fill
+              className="object-cover"
+              alt={`${title}-thumb`}
+            />
+          </div>
+          <div 
+            className="info-text 
+            flex-col gap-1 
+            w-full lg:h-full
+            max-lg:p-2 lg:pl-2"
+            onClick={onClickHandler}
+          >
+            <Typography
+              additionalClasses="line-clamp-1 lg:line-clamp-2"
+              size="text-base"
+            >
+              <b>{title}</b>
+            </Typography>
+            <Typography
+              additionalClasses="line-clamp-1 lg:line-clamp-2"
+              size="text-sm"
+            >
+              {subtitle}
             </Typography>
           </div>
-        }
+          <div 
+            className="relative max-lg:px-2" 
+            onClick={(e) => {
+              e.preventDefault();
+              toggleShowSkipOption(true);
+            }}
+          >
+            <FiMoreVertical className="max-lg:hidden" />
+            <FiMoreHorizontal className="lg:hidden" />
+            {
+              showSkipOption &&
+              <div 
+                className="skip-option-wrapper
+                absolute 
+                max-lg:top-0 max-lg:left-[1.5rem] lg:right-0
+                flex items-center gap-1 
+                w-max h-fit 
+                py-2 px-4
+                bg-black"
+                onClick={updateVideoToSkip}
+              >
+                {
+                  video.skip &&
+                  <FiCheck />
+                }
+                <Typography additionalClasses="text-nowrap">
+                  Skip video
+                </Typography>
+              </div>
+            }
+          </div>
+        </div>
       </div>
-    </div>
+    </IconContext.Provider>
   );
 }
 
