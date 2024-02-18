@@ -181,6 +181,7 @@ function VideoCard({ video }: { video: VideoInfoType }) {
             w-full h-full
             border rounded-md
             overflow-hidden"
+            onClick={onClickHandler}
           >
             <CldImage
               src={thumb}
