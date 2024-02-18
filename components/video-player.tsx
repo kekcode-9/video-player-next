@@ -436,6 +436,7 @@ export default function VideoPlayer() {
                 togglePlaying(!playing);
                 if (isTouchScreen) {
                   setShowControls(!showControls);
+                  setShowSpeedOptions(false);
                 }
               }}
               onTimeUpdate={onTimeUpdateHandler}
