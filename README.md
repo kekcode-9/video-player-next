@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## To run locally
+- Take a pull
+- npm run dev
+
 ## Production Link
 Deployed to Vercel: [https://video-playlist-next.vercel.app/]
 
