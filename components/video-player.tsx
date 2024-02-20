@@ -360,7 +360,7 @@ export default function VideoPlayer() {
       <div
         className={`
           player-container
-          max-lg:relative max-lg:z-10
+          relative z-10
           ${readyToShow ? "opacity-100" : "opacity-0"}
           flex items-center justify-center
           ${
@@ -368,7 +368,7 @@ export default function VideoPlayer() {
               ? `w-screen h-screen z-40`
               : "w-screen max-h-[50vh] z-0"
           } 
-          bg-black
+          bg-jacarta
           text-white
         `}
       >
