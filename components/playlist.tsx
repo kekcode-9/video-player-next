@@ -146,8 +146,7 @@ function VideoCard({ video }: { video: VideoInfoType }) {
           flex gap-0
           items-center 
           w-[15rem] h-52
-          lg:w-96 lg:h-28
-          max-lg:pr-1 max-lg:py-1 lg:p-2
+          pr-1 py-1 
           rounded-md 
           text-white
           cursor-pointer
@@ -172,7 +171,7 @@ function VideoCard({ video }: { video: VideoInfoType }) {
         <div
           className="card-content-wrapper
           w-full h-full
-          flex max-lg:flex-col gap-1
+          flex flex-col gap-1
           "
         >
           <div
@@ -193,8 +192,8 @@ function VideoCard({ video }: { video: VideoInfoType }) {
           <div 
             className="info-text 
             flex-col gap-1 
-            w-full lg:h-full
-            max-lg:p-2 lg:pl-2"
+            w-full 
+            p-2 "
             onClick={onClickHandler}
           >
             <Typography
@@ -211,20 +210,19 @@ function VideoCard({ video }: { video: VideoInfoType }) {
             </Typography>
           </div>
           <div 
-            className="relative max-lg:px-2" 
+            className="relative px-2" 
             onClick={(e) => {
               e.preventDefault();
               toggleShowSkipOption(true);
             }}
           >
-            <FiMoreVertical className="max-lg:hidden" />
-            <FiMoreHorizontal className="lg:hidden" />
+            <FiMoreHorizontal className="" />
             {
               showSkipOption &&
               <div 
                 className="skip-option-wrapper
                 absolute 
-                max-lg:top-0 max-lg:left-[1.5rem] lg:right-0
+                top-0 left-[1.5rem] 
                 flex items-center gap-1 
                 w-max h-fit 
                 py-2 px-4
@@ -272,20 +270,14 @@ export default function Playlist() {
   }, [playlist]);
 
   useEffect(() => {
-    if (screen.width > 1024) {
-      gsap.to(containerRef.current, {
-        translateX: showPlaylist ? '0px' : '410px'
-      })
-    } else {
-      gsap.to(containerRef.current, {
-        translateY: showPlaylist ? '0px' : '-226px',
-        delay: showPlaylist ? 0.3 : 0
-      });
-      dispatch({
-        type: SET_MOVE_INFO_UP,
-        payload: !showPlaylist
-      })
-    }
+    gsap.to(containerRef.current, {
+      translateY: showPlaylist ? '0px' : '-226px',
+      delay: showPlaylist ? 0.3 : 0
+    });
+    dispatch({
+      type: SET_MOVE_INFO_UP,
+      payload: !showPlaylist
+    })
   }, [showPlaylist, containerRef])
 
   useEffect(() => {
@@ -463,13 +455,9 @@ export default function Playlist() {
         ref={containerRef}
         className={`
           playlist-container
-          lg:absolute lg:z-[60]
-          lg:right-0 lg:top-0
-          flex max-lg:flex-col-reverse
+          flex flex-col-reverse
           items-start justify-start
           w-screen h-fit
-          lg:w-fit lg:h-screen
-          bg-jacarta
         `}
       >
         <div
@@ -479,41 +467,32 @@ export default function Playlist() {
           className={`
               playlist-visibility-toggler
               flex items-center justify-center
-              w-screen h-fit lg:w-fit lg:h-screen 
-              py-4 lg:pl-4 ${showPlaylist ? "lg:pr-0" : "lg:pr-4"}
+              w-screen h-fit bg-black
+              py-4 
           `}
         >
           {showPlaylist ?
             <>
-              <FiChevronsRight className="max-lg:hidden cursor-pointer" />
-              <FiChevronsUp className="lg:hidden cursor-pointer" />
+              <FiChevronsUp className="cursor-pointer" />
             </> :
-            <>
-              <FiChevronsLeft className="max-lg:hidden cursor-pointer" />
-              <div
-                className="lg:hidden cursor-pointer
-                flex gap-1 items-center 
-                w-fit h-fit
-                text-white
-                "
-              >
-                <Typography >Playlist</Typography>
-                <FiChevronsDown />
-              </div>
-            </>
+            <div className="flex items-center justify-center w-fit h-fit text-white">
+              <Typography>Playlist</Typography>
+              <>
+                <FiChevronsDown className="cursor-pointer" />
+              </>
+            </div>
           }
         </div>
         <div
           className="playlist-wrapper
             w-screen h-fit
-            lg:w-fit lg:h-screen
-            overflow-scroll lg:overflow-x-hidden"
+            overflow-scroll"
         >
           <div
             className={`playlist
-                flex lg:flex-col gap-2
-                w-fit lg:w-full
-                max-lg:px-4 max-lg:pt-4 lg:p-4
+                flex gap-2
+                w-fit 
+                px-4 pt-4 
             `}
           >
             {playlistData && sensors && (

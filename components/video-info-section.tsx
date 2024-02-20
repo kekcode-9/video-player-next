@@ -33,14 +33,15 @@ export default function VideoInfoSection() {
       ref={sectionRef}
       className="vid-info-section
         flex max-lg:items-start lg:justify-center 
+        lg:py-8
         text-white"
     >
       {videoInfo && (
         <div
-          className="flex flex-col gap-2 sm:gap-4
-            items-start lg:items-center 
-            max-w-[864px]
-            py-6 px-8
+          className="flex flex-col gap-2 
+            items-start 
+            max-w-[864px] lg:max-w-[40vw]
+            py-6 px-8 lg:border-l-[1px] lg:border-white
             sm:pt-8 sm:px-16"
         >
           <Typography isHeader>{videoInfo.title}</Typography>

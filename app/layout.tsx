@@ -27,7 +27,7 @@ export default function RootLayout({
     <html lang="en">
       <body 
         className={`
-          ${inter.className} bg-dark-charcoal overflow-x-hidden overflow-y-scroll
+          ${inter.className} bg-black overflow-x-hidden overflow-y-scroll
         `}
       >
         <VideoContextProvider>
